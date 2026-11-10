@@ -1,0 +1,72 @@
+name: Experiment run
+description: 파일럿 학습 또는 평가 run을 예약하고 추적합니다.
+title: "[RUN] "
+labels: ["experiment"]
+body:
+  - type: input
+    id: run_id
+    attributes:
+      label: Run ID
+      placeholder: pilot-qwen25-7b-adamw-s11-20261110-r01
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase
+      options: [P0, P1, P2, P3, P4, P5]
+    validations:
+      required: true
+  - type: dropdown
+    id: model
+    attributes:
+      label: Model
+      options: [qwen25-7b, llama31-8b, gemma3-12b]
+    validations:
+      required: true
+  - type: dropdown
+    id: condition
+    attributes:
+      label: Condition
+      options: [initial, full-adamw]
+    validations:
+      required: true
+  - type: input
+    id: config
+    attributes:
+      label: Config path or hash
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: GPU type and count
+      placeholder: 4x H100 80GB
+    validations:
+      required: true
+  - type: input
+    id: budget
+    attributes:
+      label: Estimated GPU-hours
+    validations:
+      required: true
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: Model and dataset revisions are immutable.
+          required: true
+        - label: This run uses full parameters and no LoRA/QLoRA.
+          required: true
+        - label: Artifact storage is private and writable.
+          required: true
+        - label: Raw harmful text will not be committed to Git.
+          required: true
+  - type: textarea
+    id: exit
+    attributes:
+      label: Exit criteria and notes
+      description: 성공·중단 조건과 선행 run을 적습니다.
+    validations:
+      required: true

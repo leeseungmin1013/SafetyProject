@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/momentguard/run-manifest.schema.json",
+  "title": "SafetyProject Run Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "status",
+    "git",
+    "model",
+    "data",
+    "training",
+    "hardware",
+    "software",
+    "artifacts"
+  ],
+  "properties": {
+    "run_id": {"type": "string", "minLength": 8},
+    "status": {
+      "enum": [
+        "planned",
+        "running",
+        "completed",
+        "failed-capacity",
+        "failed-numerical",
+        "failed-infrastructure",
+        "invalid-data",
+        "invalid-config",
+        "cancelled-budget"
+      ]
+    },
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "dirty"],
+      "properties": {
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "dirty": {"type": "boolean"}
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "revision", "condition"],
+      "properties": {
+        "repository": {"type": "string"},
+        "revision": {"type": "string", "not": {"enum": ["main", "latest", "TO_BE_PINNED"]}},
+        "condition": {"enum": ["initial", "full-adamw"]},
+        "parameter_count": {"type": "integer", "minimum": 1},
+        "trainable_parameter_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "revision", "manifest_sha256"],
+      "properties": {
+        "repository": {"type": "string"},
+        "revision": {"type": "string"},
+        "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "training": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seed", "finetuning_type", "precision", "quantization", "optimizer", "global_batch_examples"],
+      "properties": {
+        "seed": {"type": "integer"},
+        "finetuning_type": {"const": "full"},
+        "precision": {"const": "bf16"},
+        "quantization": {"type": "null"},
+        "optimizer": {"const": "adamw"},
+        "learning_rate": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "global_batch_examples": {"const": 16},
+        "optimizer_steps": {"type": "integer", "minimum": 0},
+        "input_tokens": {"type": "integer", "minimum": 0},
+        "answer_tokens": {"type": "integer", "minimum": 0},
+        "config_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gpu_type", "gpu_count"],
+      "properties": {
+        "gpu_type": {"type": "string"},
+        "gpu_count": {"type": "integer", "minimum": 1},
+        "peak_allocated_bytes": {"type": "integer", "minimum": 0},
+        "peak_reserved_bytes": {"type": "integer", "minimum": 0},
+        "peak_nvml_bytes": {"type": "integer", "minimum": 0},
+        "wall_time_seconds": {"type": "number", "minimum": 0},
+        "gpu_hours": {"type": "number", "minimum": 0}
+      }
+    },
+    "software": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python", "pytorch", "cuda", "transformers", "llamafactory_commit"],
+      "properties": {
+        "python": {"type": "string"},
+        "pytorch": {"type": "string"},
+        "cuda": {"type": "string"},
+        "transformers": {"type": "string"},
+        "llamafactory_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri", "sha256", "contains_raw_harmful_text"],
+      "properties": {
+        "uri": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "contains_raw_harmful_text": {"type": "boolean"}
+      }
+    },
+    "notes": {"type": "string"}
+  }
+}

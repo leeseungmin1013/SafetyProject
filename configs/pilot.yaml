@@ -1,0 +1,132 @@
+project:
+  name: SafetyProject
+  protocol_version: "0.1.0"
+  scope: initial-vs-full-adamw
+  forbid_adapters: true
+  forbid_quantization: true
+
+models:
+  - id: qwen25-7b
+    repository: Qwen/Qwen2.5-7B-Instruct
+    revision: TO_BE_PINNED
+    template: qwen
+  - id: llama31-8b
+    repository: meta-llama/Llama-3.1-8B-Instruct
+    revision: TO_BE_PINNED
+    template: llama3
+  - id: gemma3-12b
+    repository: google/gemma-3-12b-it
+    revision: TO_BE_PINNED
+    template: gemma
+    text_only: true
+    report_vision_component_memory: true
+
+data:
+  task:
+    repository: databricks/databricks-dolly-15k
+    revision: TO_BE_PINNED
+    train_examples: 2000
+    dev_examples: 250
+    test_examples: 250
+    split_seed: 2026
+    manifest_sha256: TO_BE_GENERATED
+  leakage_check:
+    exact_normalized_match: true
+    character_ngram: true
+    embedding_retrieval: true
+    manual_adjudication: true
+
+training:
+  finetuning_type: full
+  precision: bf16
+  quantization: null
+  optimizer: adamw
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1.0e-8
+  weight_decay: 0.0
+  cutoff_len: 1024
+  packing: false
+  global_batch_examples: 16
+  epochs: 1
+  expected_optimizer_steps: 125
+  warmup_steps: 5
+  scheduler: constant_after_warmup
+  gradient_clipping: null
+  activation_checkpointing: true
+  sharding_backend: TO_BE_DECIDED
+  checkpoint_steps: [0, 25, 50, 75, 100, 125]
+  lr_sweep:
+    anchor_model: qwen25-7b
+    values: [5.0e-6, 1.0e-5, 2.0e-5]
+    seed: 42
+    selection_metric: task_dev_answer_token_ce
+    tie_break: lower_learning_rate
+  seeds:
+    feasibility: 11
+    confirmation: 23
+    full_extension: [11, 23, 37]
+
+generation:
+  primary:
+    temperature: 0.0
+    do_sample: false
+    max_new_tokens: 256
+  gsm8k:
+    temperature: 0.0
+    do_sample: false
+    max_new_tokens: 512
+  robustness_optional:
+    temperature: 0.7
+    top_p: 0.9
+    samples_per_prompt: 3
+
+utility_evaluation:
+  - dataset: SAMSum
+    primary_metrics: [rougeL, bertscore]
+  - dataset: AG_News
+    primary_metrics: [accuracy, macro_f1]
+  - dataset: GSM8K
+    primary_metrics: [exact_match]
+  - dataset: OpenBookQA
+    primary_metrics: [accuracy]
+  - dataset: IFEval
+    primary_metrics: [strict_accuracy, loose_accuracy]
+
+safety_evaluation:
+  behavior_sets: [JailbreakBench, WildJailbreak, StrongREJECT]
+  pilot_attacks: [direct, PAP, AutoDAN-Turbo]
+  deferred_attacks: [TAP, RAINBOW]
+  judges:
+    - provider: openai
+      model_version: TO_BE_PINNED
+    - provider: google
+      model_version: TO_BE_PINNED
+  report_per_judge: true
+  adjudicate_disagreements: true
+  minimum_blinded_audit_examples: 100
+
+over_refusal:
+  dataset: XSTest
+  benign_examples: 250
+  distinguish_full_and_partial_refusal: true
+
+profiling:
+  exclude_warmup_steps_from_steady_state: 10
+  report:
+    - end_to_end_wall_time
+    - steady_state_step_time_median
+    - steady_state_step_time_p95
+    - gpu_hours
+    - tokens_per_second_per_gpu
+    - peak_allocated_vram
+    - peak_reserved_vram
+    - peak_nvml_vram
+    - checkpoint_size
+    - checkpoint_write_time
+
+artifacts:
+  raw_generations_in_git: false
+  harmful_prompts_in_git: false
+  private_storage_uri: TO_BE_CONFIGURED
+  checksums_required: true

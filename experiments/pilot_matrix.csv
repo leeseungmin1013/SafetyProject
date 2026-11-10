@@ -1,0 +1,13 @@
+phase,run_group,model,condition,learning_rate,seed,budget,evaluation,required,gate
+P1,initial-qwen,qwen25-7b,initial,NA,NA,no-training,tier1-initial,yes,none
+P1,initial-llama,llama31-8b,initial,NA,NA,no-training,tier1-initial,yes,none
+P1,initial-gemma,gemma3-12b,initial,NA,NA,no-training,tier1-initial,yes,none
+P2,lr-qwen-low,qwen25-7b,full-adamw,5e-6,42,125-steps,task-dev-only,yes,finite-and-improves-dev-ce
+P2,lr-qwen-mid,qwen25-7b,full-adamw,1e-5,42,125-steps,task-dev-only,yes,finite-and-improves-dev-ce
+P2,lr-qwen-high,qwen25-7b,full-adamw,2e-5,42,125-steps,task-dev-only,yes,finite-and-improves-dev-ce
+P3,feas-qwen,qwen25-7b,full-adamw,selected,11,125-steps,tier1-pilot,yes,no-oom-or-numerical-failure
+P3,feas-llama,llama31-8b,full-adamw,selected,11,125-steps,tier1-pilot,yes,no-oom-or-numerical-failure
+P3,feas-gemma,gemma3-12b,full-adamw,selected,11,125-steps,tier1-pilot,yes,no-oom-or-numerical-failure
+P4,confirm-qwen,qwen25-7b,full-adamw,selected,23,125-steps,tier1-pilot,yes,anchor-confirmation
+P4,confirm-llama,llama31-8b,full-adamw,selected,23,125-steps,tier1-pilot,conditional,material-delta-or-selected-anchor
+P4,confirm-gemma,gemma3-12b,full-adamw,selected,23,125-steps,tier1-pilot,conditional,material-delta-or-selected-anchor
