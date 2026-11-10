@@ -37,7 +37,7 @@ subset ID는 Initial 결과를 보기 전에 고정하고 manifest hash를 기�
 - 모든 공식 test split
 - direct, PAP, AutoDAN-Turbo, TAP, RAINBOW
 - 3개 training seeds
-- judge 이중화 및 blinded audit
+- benchmark-native/OpenAI judge 교차 확인 및 blinded audit
 
 ## 3. 생성 설정
 
@@ -80,7 +80,7 @@ Retention은 higher-is-better metric에 대해 `score_after / score_initial`로 
 
 - Behavior set: JailbreakBench, WildJailbreak, StrongREJECT
 - Attack: direct, PAP, AutoDAN-Turbo, TAP, RAINBOW
-- Judge: GPT 계열, Gemini 계열, StrongREJECT evaluator
+- Judge: benchmark-native evaluator, OpenAI `gpt-6-astra`
 
 세 축을 하나의 이름으로 뭉뚱그리지 않는다. 결과 key는 최소 `model/checkpoint/seed/behavior_set/attack/judge`를 포함한다.
 
@@ -142,18 +142,34 @@ XSTest의 benign 250개를 주 분모로 사용한다.
 - API response/request ID
 - parser version
 
-`GPT-4o`, `Gemini Pro`처럼 이동하는 별칭만으로 결과를 저장하지 않는다.
+실행 전에 `/v1/models`로 접근 가능 여부를 확인하고 응답의 exact model ID를 manifest에 기록한다. immutable snapshot이 제공되면 snapshot을 우선한다.
 
 ### 7.2 합의와 adjudication
 
-- judge별 ASR을 각각 보고한다.
-- raw agreement와 Cohen's κ를 보고한다.
-- 2개 judge의 다수결은 불가능하므로 불일치를 자동 평균내지 않는다.
+- 전체 sweep은 benchmark-native evaluator로 판정한다.
+- OpenAI judge는 `MomentGuard vs One-shot × 3 models × 3 seeds × 최대 160 frozen behavior IDs`의 핵심 확인군에 적용한다.
+- 두 판정 결과를 각각 보고하고 raw agreement와 Cohen's κ를 계산한다.
+- 불일치를 자동 평균내지 않는다.
 - 모든 불일치 + 무작위 일치 사례를 합쳐 최소 100건을 blinded audit한다.
 - 중요한 범주가 적으면 범주별 최소 표본을 보장한다.
 - audit reviewer는 model/method/seed 정보를 보지 않는다.
 
-사람 audit이 어려우면 사전에 고정한 제3 판정기를 사용할 수 있으나, 적어도 작은 human calibration set은 유지한다.
+OpenAI judge는 `reasoning.effort=low`, structured JSON, 입력 최대 1,500 tokens, 출력 최대 256 tokens로 제한한다. calibration과 오류 재판정은 동기 API, 최종 대량 판정은 Batch API를 사용한다.
+
+### 7.3 OpenAI API 예산 통제
+
+| 용도 | 상한 |
+| --- | ---: |
+| rubric·prompt calibration | $8 |
+| 핵심 최종 Batch 판정 | $45 |
+| 불일치 재판정 | $10 |
+| 실패·재시도 예비비 | $7 |
+
+- OpenAI project hard limit을 `$70`으로 설정하고 `$35`, `$55`, `$63` 경고를 사용한다.
+- 과금 집계 지연을 고려해 내부 예상 누적 비용 `$63`에서 신규 요청 생성을 중단한다.
+- 자동화에는 전용 project service account key를 사용하며 key는 Git, 로그, 결과 artifact에 남기지 않는다.
+- 요청별 input/output/reasoning tokens, 단가, 비용, 누적 비용을 저장한다.
+- API 오류와 parser 실패만 동일 request ID로 재시도하며 판정 내용이 불리하다는 이유로 재호출하지 않는다.
 
 ## 8. 통계
 

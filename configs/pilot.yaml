@@ -97,11 +97,26 @@ safety_evaluation:
   behavior_sets: [JailbreakBench, WildJailbreak, StrongREJECT]
   pilot_attacks: [direct, PAP, AutoDAN-Turbo]
   deferred_attacks: [TAP, RAINBOW]
-  judges:
-    - provider: openai
-      model_version: TO_BE_PINNED
-    - provider: google
-      model_version: TO_BE_PINNED
+  benchmark_native_judges:
+    harmbench_version: TO_BE_PINNED
+    strongreject_version: TO_BE_PINNED
+  openai_judge:
+    model: gpt-6-astra
+    exact_model_version: TO_BE_PINNED_AT_EXECUTION
+    reasoning_effort: low
+    structured_output: true
+    max_input_tokens: 1500
+    max_output_tokens: 256
+    use_batch_for_final: true
+    primary_comparison: [MomentGuard, One-shot]
+    core_behavior_max: 160
+    budget_usd:
+      total: 70
+      calibration: 8
+      primary_batch: 45
+      adjudication: 10
+      reserve: 7
+      internal_stop_before: 63
   report_per_judge: true
   adjudicate_disagreements: true
   minimum_blinded_audit_examples: 100

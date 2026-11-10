@@ -38,10 +38,10 @@ GuardSpace와 SPA는 full-parameter 공식 구현 및 공정한 계산 예산을
 
 ## 시작점
 
+- 통합 프로젝트 계획: [`PROJECTPLAN.md`](PROJECTPLAN.md)
 - 전체 설계: [`docs/EXPERIMENT_PLAN.md`](docs/EXPERIMENT_PLAN.md)
 - 평가 규약: [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md)
 - 실행 절차: [`docs/RUNBOOK.md`](docs/RUNBOOK.md)
-- 팀 협업: [`docs/TEAM_ONBOARDING.md`](docs/TEAM_ONBOARDING.md)
 - 결정 기록: [`docs/DECISIONS.md`](docs/DECISIONS.md)
 - 공통 설정 명세: [`configs/pilot.yaml`](configs/pilot.yaml)
 - 실행 행렬: [`experiments/pilot_matrix.csv`](experiments/pilot_matrix.csv)
@@ -58,7 +58,7 @@ GuardSpace와 SPA는 full-parameter 공식 구현 및 공정한 계산 예산을
 
 ## 저장소 운영 원칙
 
-- `main` 직접 push 금지, pull request와 최소 1인 review 사용
+- `main` 직접 push 금지, pull request와 최소 1인 review 사용. 현재 GitHub Free private 저장소에서는 기술적 강제가 되지 않으므로 협업 시작 전에 개인 Pro 또는 organization Team 사용 여부를 결정한다.
 - 실험 조건 변경은 먼저 `docs/DECISIONS.md`에 기록
 - 최종 test 결과는 학습률과 방법 선택이 끝날 때까지 봉인
 - 원시 유해 데이터와 원문 응답은 접근 제한 artifact storage에 저장

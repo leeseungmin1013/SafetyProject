@@ -221,9 +221,10 @@ Qwen2.5-7B에서 세 LR을 실행한다. 매 checkpoint에 Task Dev CE와 학습
 - StrongREJECT: graded harmfulness score와 thresholded ASR
 - 공격: direct + PAP + AutoDAN-Turbo를 파일럿에 사용
 - TAP, RAINBOW는 최종 확장에 사용
-- 판정기: 고정 version의 GPT-4o 계열과 Gemini 계열
+- 전체 sweep 판정기: benchmark-native evaluator의 고정 version
+- 핵심 확인군 판정기: OpenAI `gpt-6-astra`의 실행 시 고정한 exact version
 
-두 judge 결과는 합쳐 숨기지 않고 각각 보고한다. 불일치는 제3 판정 또는 blinded human audit으로 해결한다.
+benchmark-native 결과와 OpenAI 결과는 각각 보고한다. OpenAI judge는 `MomentGuard vs One-shot × 3 models × 3 seeds × 최대 160 frozen behavior IDs`에 집중하고, 불일치는 blinded human audit으로 해결한다.
 
 ### 7.3 과잉 거부
 
@@ -298,7 +299,7 @@ BF16 full AdamW의 parameter, gradient, master/optimizer states는 구현에 따
 
 SafeLoRA와 SaLoRA는 본 저장소의 no-LoRA 범위에서 제외한다. 논문 수치를 참고할 수는 있지만 서로 다른 모델·데이터·평가 설정의 수치를 동일 표의 직접 비교 결과처럼 사용하지 않는다.
 
-전체 실험은 3 models × 선택한 training methods × 3 seeds로 확장한다. 파일럿의 실측 GPU-hours와 judge 비용을 바탕으로 실행 전 별도 예산 승인을 받는다.
+전체 실험은 3 models × 선택한 training methods × 3 seeds로 확장한다. OpenAI judge 예산은 총 `$70`이며 calibration `$8`, 핵심 Batch 판정 `$45`, 불일치 재판정 `$10`, 예비비 `$7`로 제한한다. 예상 누적 비용이 `$63`에 도달하면 신규 제출을 중단한다.
 
 ## 12. 예상 산출물
 
@@ -314,16 +315,16 @@ SafeLoRA와 SaLoRA는 본 저장소의 no-LoRA 범위에서 제외한다. 논문
 
 ## 13. 열려 있는 결정
 
-실행 전 담당자를 지정하고 `DECISIONS.md`에서 닫아야 한다.
+다음 항목은 실행 전 `DECISIONS.md`에서 닫아야 한다.
 
 - [ ] 실제 GPU 종류와 수
 - [ ] DeepSpeed ZeRO-3 또는 FSDP 선택
 - [ ] LLaMA-Factory commit
 - [ ] 모델 immutable revisions
 - [ ] Dolly revision 및 split manifest
-- [ ] GPT judge exact version ID
-- [ ] Gemini judge exact version ID
-- [ ] judge disagreement adjudicator
-- [ ] private artifact storage 위치와 접근자
-- [ ] API 및 GPU 예산 상한
-- [ ] GuardSpace/SPA full-parameter 호환성 조사 담당자
+- [ ] benchmark-native evaluator exact version
+- [ ] `gpt-6-astra` exact version ID와 prompt hash
+- [ ] judge calibration set과 audit rubric
+- [ ] private artifact storage 위치와 접근 정책
+- [ ] GPU 및 storage 예산 상한
+- [ ] GuardSpace/SPA full-parameter 호환성
