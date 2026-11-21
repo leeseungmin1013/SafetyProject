@@ -1,0 +1,11 @@
+phase,run_id,model,dataset,method,steps_or_scope,required,gate
+D0,protocol-freeze,qwen25-7b,gsm8k,review-only,source-pin,yes,decisions-and-references-confirmed
+E0,full-adamw-5-step,qwen25-7b,gsm8k,full-adamw,3-to-5-steps,yes,oom-nan-memory-and-checkpoint-gate
+P1,adamw-20-50,qwen25-7b,gsm8k,full-adamw,20-to-50-steps,yes,verified-baseline-loss-and-update
+P2,spf-20-50,qwen25-7b,gsm8k,spf-full-adamw,20-to-50-steps,yes,spf-parity-and-gating-tests
+A4P,a4-probe-smoke,qwen25-7b,gsm8k,nonmutating-replay,10-to-20-probe-steps,yes,adamw-parity-and-isolated-probes
+R1,adamw-1-epoch,qwen25-7b,gsm8k,full-adamw,117-optimizer-steps,yes,preflight-passed
+R1,spf-1-epoch,qwen25-7b,gsm8k,spf-full-adamw,117-optimizer-steps,yes,preflight-passed
+A4M,a4-main,qwen25-7b,gsm8k,nonmutating-replay,48-to-96-probe-steps,yes,audit-and-spf-residual-separated
+R2,adamw-and-spf-extension,qwen25-7b,gsm8k,full-adamw-and-spf,up-to-5-epochs,conditional,one-epoch-results-reviewed
+R3,seed-replication,qwen25-7b,gsm8k,full-adamw-and-spf,3-seeds,conditional,sufficient-compute-budget
