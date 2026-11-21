@@ -1,0 +1,6 @@
+phase,run_id,model,dataset,method,steps_or_scope,required,gate,command
+D0,a4-core-tests,qwen25-7b,gsm8k,unit-tests,core-math-and-state,yes,all-tests-pass,powershell scripts/a4_local_tests.ps1
+D0,a4-preflight,qwen25-7b,gsm8k,preflight,environment-and-private-data,yes,memory-disk-token-model-gates-pass,bash scripts/a4_preflight.sh
+E0,a4-smoke-5,qwen25-7b,gsm8k,spf-nvme-fp32-a4,5-optimizer-steps,yes,peak-cuda-under-55gib-and-state-spool-cleanup,bash scripts/a4_smoke.sh
+A4P,a4-pilot-20,qwen25-7b,gsm8k,spf-nvme-fp32-a4,20-optimizer-steps,yes,adamw-parity-and-finite-audit-delta,bash scripts/a4_pilot.sh
+A4M,a4-main-117,qwen25-7b,gsm8k,spf-nvme-fp32-a4,117-optimizer-steps,yes,16-preregistered-probes-complete,bash scripts/a4_main.sh

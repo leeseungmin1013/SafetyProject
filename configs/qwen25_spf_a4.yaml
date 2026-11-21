@@ -1,0 +1,128 @@
+# Executable Qwen-only GSM8K/SPF/A4 contract.
+# Raw safety/audit records stay outside Git and are supplied through environment variables.
+runtime:
+  output_root: ${A4_OUTPUT_ROOT:-/workspace/runs/qwen25-spf-a4}
+  gradient_spool_root: ${A4_GRADIENT_SPOOL_ROOT:-/workspace/runs/.a4-gradient-spool}
+  optimizer_state_root: ${A4_OPTIMIZER_STATE_ROOT:-/workspace/runs/.a4-optimizer-state}
+  run_id_prefix: a4-qwen25-7b-spf
+  fail_if_git_dirty: false
+  require_private_data_outside_repository: true
+  minimum_host_memory_gib: 32
+  minimum_free_cuda_gib: 48
+  gpu_budget_gib: 55  # 59.1 decimal GB, below a literal 60 GB target
+  minimum_free_disk_gib: 140
+
+project:
+  repository: leeseungmin1013/SafetyProject
+  scope: qwen25-7b-spf-reproduction-and-a4
+  phase: specification_preflight
+  reference_specification: docs/Qwen25_7B_SPF_A4_실험명세서_v0_9.md
+  model_expansion: deferred
+  forbid_adapter_training: true
+  forbid_quantized_training: true
+
+hardware:
+  platform: dgx-spark
+  devices: 1
+  unified_memory_gb: 128
+  preflight_required: true
+  full_adamw_moment_dtype: fp32
+  optimizer_state_storage: nvme_chunked_fp32
+
+model:
+  repository: Qwen/Qwen2.5-7B-Instruct
+  revision: a09a35458c702b33eeacc393d103063234e8bc28
+  tokenizer_revision: a09a35458c702b33eeacc393d103063234e8bc28
+  all_parameters_trainable: true
+  compute_dtype: bf16
+  activation_checkpointing: true
+  attention_implementation: sdpa
+
+data:
+  utility:
+    repository: openai/gsm8k
+    config: main
+    revision: 740312add88f781978c0658806c59bc2815b9866
+    train_split: train
+    train_examples: 7473
+    test_split: test
+    test_examples: 1319
+    format: qwen_native_chat_assistant_only_ce_raw_gsm8k_answer
+    pilot_dev_holdout_from_train: 256
+    final_test_sealed_until_selection: true
+  safety:
+    projection_source: original_spf_one_shot_private
+    projection_sample_path: ${A4_SAFETY_SAMPLE_PATH}
+    audit_panel_path: ${A4_AUDIT_PANEL_PATH}
+    reference_examples_per_step: 1
+    independent_audit_probes: 16
+    audit_gradient_examples_per_probe: 1
+    audit_examples_disjoint_from_projection: true
+
+training:
+  optimizer: adamw
+  learning_rate: 2.0e-5
+  beta1: 0.5
+  beta2: 0.999
+  epsilon: 1.0e-8
+  weight_decay: 0.0  # provisional until original code verification
+  scheduler: constant
+  gradient_clipping: null
+  max_sequence_length: 576  # full pinned GSM8K scan: max 567 tokens, zero truncation
+  per_device_microbatch: 1
+  gradient_accumulation_steps: 64
+  effective_batch_examples: 64
+  optimizer_state_dtype: fp32
+  optimizer_chunk_elements: 8388608  # 32 MiB per FP32 moment chunk
+  max_optimizer_steps: 117
+  pilot_optimizer_steps: [5, 20, 50]
+  target_epochs: 1
+  one_epoch_optimizer_steps: 117
+  pilot_seed: 42
+  training_seed_extension: [11, 23, 37]
+  gradient_projection_timing: after_accumulation_before_optimizer_step
+
+spf:
+  implementation: paper_spec_streamed_reference_gradient
+  rank: 10
+  svd_oversampling: 8
+  svd_power_iterations: 2
+  conflict_gating: paper_zero
+  parameter_allowlist: all_2d
+  safety_gradient_refresh: per_optimizer_step
+  precision: fp32_svd_and_metrics
+
+a4:
+  independent_of_full_spf_reproduction: true
+  base_comparison: [no_spf, spf_adamw]
+  replay: same_theta_and_optimizer_state
+  scalar_stages: [g_u, g_u_prime, m_hat, D_m_hat, delta_predicted, delta_actual]
+  reference_gradient_name: s_fresh
+  generalization_gradient_name: s_audit
+  metrics: [signed_dot, cosine, delta_norm, audit_delta_ce]
+  momentum_ablation: m_prev_kept_vs_reset_same_beta
+  preconditioner_ablation: identity_vs_accumulated_v
+  weight_decay_ablation: [0.0, 0.01]
+  beta1_0_9: separate_trajectory_not_primary_one_step_causal
+  audit_probe_steps_pilot: [10, 20]
+  audit_probe_steps_main_target: [48, 96]
+  probe_steps: [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 117]
+  probe_every: 0
+  exact_actual_delta: true
+  audit_loss_panel_size: 16
+  original_state_mutation_forbidden: true
+
+evaluation:
+  gsm8k_exact_match: true
+  xstest_over_refusal_required: true
+  safety_native_evaluator: delegated_to_parallel_evaluation_track
+  hex_phi_reproduction: not_required_for_a4_mechanistic_run
+  harmbench_optional_external_validation: true
+  openai_judge_for_this_pilot: false
+  safe_generation_log_storage: private_only
+
+artifact:
+  raw_harmful_text_in_git: false
+  checkpoint_policy: disabled_restart_run  # one-epoch A4; failed runs restart with a new run ID
+  model_revision_manifest_required: true
+  schema: schemas/a4-run-manifest.schema.json

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/safetyproject/a4-run-manifest.schema.json",
+  "title": "SafetyProject SPF/A4 Run Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "run_id",
+    "status",
+    "git",
+    "model",
+    "data",
+    "training",
+    "spf",
+    "hardware",
+    "software",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "run_id": {"type": "string", "minLength": 8},
+    "status": {
+      "enum": [
+        "planned",
+        "running",
+        "completed",
+        "failed-capacity",
+        "failed-numerical",
+        "failed-infrastructure",
+        "invalid-data",
+        "invalid-config",
+        "invalid-implementation",
+        "cancelled-budget"
+      ]
+    },
+    "git": {
+      "type": "object",
+      "required": ["commit", "dirty"],
+      "properties": {
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "dirty": {"type": "boolean"}
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["repository", "revision", "condition"],
+      "properties": {
+        "repository": {"type": "string"},
+        "revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "condition": {"const": "spf-a4"},
+        "parameter_count": {"type": "integer", "minimum": 1},
+        "trainable_parameter_count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "data": {
+      "type": "object",
+      "required": ["repository", "revision", "projection_sample_sha256", "audit_panel_sha256"]
+    },
+    "training": {
+      "type": "object",
+      "required": [
+        "seed",
+        "finetuning_type",
+        "precision",
+        "optimizer",
+        "optimizer_state_dtype",
+        "optimizer_state_storage",
+        "optimizer_chunk_elements",
+        "global_batch_examples",
+        "config_sha256"
+      ],
+      "properties": {
+        "finetuning_type": {"const": "full"},
+        "precision": {"const": "bf16"},
+        "optimizer": {"const": "adamw"},
+        "optimizer_state_dtype": {"enum": ["fp32", "parameter"]},
+        "optimizer_state_storage": {"const": "nvme_chunked_fp32"},
+        "optimizer_chunk_elements": {"type": "integer", "minimum": 1},
+        "global_batch_examples": {"type": "integer", "minimum": 1}
+      }
+    },
+    "spf": {
+      "type": "object",
+      "required": ["rank", "gate", "allowlist"]
+    },
+    "hardware": {
+      "type": "object",
+      "required": ["gpu_type", "gpu_count"]
+    },
+    "software": {
+      "type": "object",
+      "required": ["python", "pytorch", "cuda"]
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["uri", "contains_raw_harmful_text"],
+      "properties": {
+        "contains_raw_harmful_text": {"const": false}
+      }
+    }
+  }
+}

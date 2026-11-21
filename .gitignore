@@ -6,6 +6,9 @@ __pycache__/
 .ruff_cache/
 .venv/
 venv/
+dist/
+build/
+*.egg-info/
 
 # Editors and OS
 .DS_Store
@@ -38,7 +41,12 @@ mlruns/
 private-eval/
 harmful-prompts/
 raw-generations/
+private/
 
 # Local overrides
 configs/local/
 *.local.yaml
+
+# A4 ephemeral gradient spools
+.a4-gradient-spool/
+.a4-optimizer-state/

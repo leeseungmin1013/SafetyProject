@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safetyproject-a4"
+version = "0.1.0"
+description = "Executable Qwen2.5 SPF/A4 experiment harness"
+requires-python = ">=3.11"
+dependencies = [
+  "PyYAML>=6.0.2",
+  "numpy>=1.26.0",
+  "datasets>=3.2.0",
+  "safetensors>=0.5.0",
+  "torch>=2.5.0",
+  "transformers>=4.48.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "jsonschema>=4.23.0",
+  "pytest>=8.3.0",
+]
+
+[project.scripts]
+a4-preflight = "safety_project_a4.preflight:main"
+a4-train = "safety_project_a4.train:main"
+a4-analyze = "safety_project_a4.analyze:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -38,6 +38,9 @@ GuardSpace와 SPA는 full-parameter 공식 구현 및 공정한 계산 예산을
 
 ## 시작점
 
+- Qwen SPF/A4 즉시 실행: [`docs/A4_RUNBOOK.md`](docs/A4_RUNBOOK.md)
+- Qwen SPF/A4 실행 설정: [`configs/qwen25_spf_a4.yaml`](configs/qwen25_spf_a4.yaml)
+- Qwen SPF/A4 실행 행렬: [`experiments/qwen25_spf_a4_matrix.csv`](experiments/qwen25_spf_a4_matrix.csv)
 - 통합 프로젝트 계획: [`PROJECTPLAN.md`](PROJECTPLAN.md)
 - 전체 설계: [`docs/EXPERIMENT_PLAN.md`](docs/EXPERIMENT_PLAN.md)
 - 평가 규약: [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md)
