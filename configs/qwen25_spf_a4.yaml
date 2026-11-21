@@ -51,7 +51,7 @@ data:
     pilot_dev_holdout_from_train: 256
     final_test_sealed_until_selection: true
   safety:
-    projection_source: original_spf_one_shot_private
+    projection_source: preregistered_refusal_pair_private
     projection_sample_path: ${A4_SAFETY_SAMPLE_PATH}
     audit_panel_path: ${A4_AUDIT_PANEL_PATH}
     reference_examples_per_step: 1
