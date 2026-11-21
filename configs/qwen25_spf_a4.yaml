@@ -1,0 +1,104 @@
+# Declarative research contract, NOT a directly executable Trainer config.
+# This supersedes configs/pilot.yaml for the current Qwen-only GSM8K/SPF/A4 phase.
+project:
+  repository: leeseungmin1013/SafetyProject
+  scope: qwen25-7b-spf-reproduction-and-a4
+  phase: specification_preflight
+  reference_review: docs/QWEN25_SPF_A4_REVIEW.md
+  model_expansion: deferred
+  forbid_adapter_training: true
+  forbid_quantized_training: true
+
+hardware:
+  platform: dgx-spark
+  devices: 1
+  unified_memory_gb: VERIFY_ON_DEVICE
+  preflight_required: true
+  memory_min_headroom_fraction: 0.1
+  full_adamw_moment_dtype: FP32_PREFERRED_VERIFY
+  optimizer_state_storage: TO_BE_VALIDATED
+
+model:
+  repository: Qwen/Qwen2.5-7B-Instruct
+  revision: TO_BE_PINNED
+  tokenizer_revision: TO_BE_PINNED
+  all_parameters_trainable: true
+  compute_dtype: bf16
+  activation_checkpointing: true
+
+data:
+  utility:
+    repository: openai/gsm8k
+    config: main
+    train_split: train
+    train_examples: 7473
+    test_split: test
+    test_examples: 1319
+    format: QWEN_ASSISTANT_ONLY_CE_TO_BE_FIXED
+    revision: TO_BE_PINNED
+    pilot_dev_holdout_from_train: 256
+    final_test_sealed_until_selection: true
+  safety:
+    projection_source: ORIGINAL_SPF_ONE_SHOT_TO_BE_CONFIRMED
+    reference_examples_per_step: 1
+    independent_audit_probes: 16
+    audit_examples_disjoint_from_projection: true
+
+training:
+  optimizer: adamw
+  learning_rate: 2.0e-5
+  beta1: 0.5
+  beta2: 0.999
+  epsilon: 1.0e-8
+  weight_decay: 0.0  # provisional until original code verification
+  scheduler: TO_BE_VERIFIED_AGAINST_SPF
+  gradient_clipping: TO_BE_VERIFIED_AGAINST_SPF
+  sequence_length: TO_BE_DETERMINED_FROM_TOKEN_LENGTHS
+  per_device_microbatch: 1
+  gradient_accumulation_steps: 64
+  effective_batch_examples: 64
+  pilot_optimizer_steps: [5, 20, 50]
+  target_epochs: 5
+  one_epoch_optimizer_steps: 117
+  pilot_seed: 42
+  training_seed_extension: [11, 23, 37]
+  gradient_projection_timing: after_accumulation_before_optimizer_step
+
+spf:
+  implementation: PAPER_AND_OFFICIAL_CODE_TO_BE_ALIGNED
+  rank: 10 # candidate only; not confirmed paper reproduction
+  conflict_gating: global_dot_product
+  parameter_allowlist: TO_BE_PINNED
+  safety_gradient_refresh: per_optimizer_step
+  precision: TO_BE_MEASURED
+
+a4:
+  independent_of_full_spf_reproduction: true
+  base_comparison: [no_spf, spf_adamw]
+  replay: same_theta_and_optimizer_state
+  scalar_stages: [g_u, g_u_prime, m_hat, D_m_hat, delta_predicted, delta_actual]
+  reference_gradient_name: s_fresh
+  generalization_gradient_name: s_audit
+  metrics: [signed_dot, cosine, delta_norm, audit_delta_ce]
+  momentum_ablation: m_prev_kept_vs_reset_same_beta
+  preconditioner_ablation: identity_vs_accumulated_v
+  weight_decay_ablation: [0.0, 0.01]
+  beta1_0_9: separate_trajectory_not_primary_one_step_causal
+  audit_probe_steps_pilot: [10, 20]
+  audit_probe_steps_main_target: [48, 96]
+  original_state_mutation_forbidden: true
+
+evaluation:
+  gsm8k_exact_match: true
+  xstest_over_refusal_required: true
+  safety_native_evaluator: TO_BE_PINNED
+  hex_phi_reproduction: SOURCE_AND_JUDGE_TO_BE_VERIFIED
+  harmbench_optional_external_validation: true
+  openai_judge_for_this_pilot: false
+  safe_generation_log_storage: private_only
+
+artifact:
+  raw_harmful_text_in_git: false
+  checkpoint_location: TO_BE_CONFIGURED
+  model_revision_manifest_required: true
+  schema: schemas/run-manifest.schema.json
