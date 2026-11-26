@@ -44,7 +44,7 @@ def load_config(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
-    required = ("runtime", "model", "data", "training", "spf", "a4")
+    required = ("runtime", "model", "data", "training", "spf", "a4", "artifact")
     missing = [name for name in required if name not in config]
     if missing:
         raise ValueError(f"missing config sections: {', '.join(missing)}")
@@ -76,6 +76,10 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("NVMe A4 requires fp32 optimizer state")
     if int(config["training"]["optimizer_chunk_elements"]) < 1:
         raise ValueError("optimizer_chunk_elements must be positive")
+    if config["artifact"].get("checkpoint_policy") not in {
+        "disabled_restart_run", "save_final_main_only"
+    }:
+        raise ValueError("artifact.checkpoint_policy must be disabled_restart_run or save_final_main_only")
 
 
 def with_overrides(

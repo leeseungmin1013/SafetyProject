@@ -51,7 +51,7 @@ data:
     pilot_dev_holdout_from_train: 256
     final_test_sealed_until_selection: true
   safety:
-    projection_source: preregistered_refusal_pair_private
+    projection_source: "arxiv:2601.10141v1 section 5.1"
     projection_sample_path: ${A4_SAFETY_SAMPLE_PATH}
     audit_panel_path: ${A4_AUDIT_PANEL_PATH}
     reference_examples_per_step: 1
@@ -123,6 +123,6 @@ evaluation:
 
 artifact:
   raw_harmful_text_in_git: false
-  checkpoint_policy: disabled_restart_run  # one-epoch A4; failed runs restart with a new run ID
+  checkpoint_policy: save_final_main_only  # save final model after 117 steps; partial runs skip
   model_revision_manifest_required: true
   schema: schemas/a4-run-manifest.schema.json

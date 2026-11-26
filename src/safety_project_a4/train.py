@@ -7,6 +7,7 @@ import math
 import os
 import platform
 import random
+import re
 import sys
 import time
 from pathlib import Path
@@ -14,6 +15,7 @@ from typing import Any
 
 import torch
 
+from .checkpoint import save_final_checkpoint
 from .config import load_config, with_overrides
 from .data import CausalCollator, EncodedExample, encode_record, load_private_records, move_batch
 from .gradient_capture import GradientSpool, apply_spf_projection, capture_reference_gradient
@@ -69,6 +71,7 @@ def _manifest(config: dict[str, Any], run_id: str, output_dir: Path, status: str
     commit, dirty = git_state(repository)
     safety_path = config["data"]["safety"]["projection_sample_path"]
     audit_path = config["data"]["safety"]["audit_panel_path"]
+    selection_path = os.environ.get("A4_SELECTION_MANIFEST_PATH")
     return {
         "schema_version": 1,
         "run_id": run_id,
@@ -85,6 +88,7 @@ def _manifest(config: dict[str, Any], run_id: str, output_dir: Path, status: str
             "revision": config["data"]["utility"]["revision"],
             "projection_sample_sha256": sha256_file(safety_path),
             "audit_panel_sha256": sha256_file(audit_path),
+            "selection_manifest_sha256": sha256_file(selection_path) if selection_path else None,
         },
         "training": {
             "seed": config["training"]["pilot_seed"],
@@ -121,7 +125,11 @@ def _manifest(config: dict[str, Any], run_id: str, output_dir: Path, status: str
             "datasets": importlib.metadata.version("datasets"),
             "safetensors": importlib.metadata.version("safetensors"),
         },
-        "artifacts": {"uri": str(output_dir), "contains_raw_harmful_text": False},
+        "artifacts": {
+            "uri": str(output_dir),
+            "contains_raw_harmful_text": False,
+            "checkpoint_policy": config["artifact"]["checkpoint_policy"],
+        },
     }
 
 
@@ -145,7 +153,9 @@ def run(config: dict[str, Any]) -> Path:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     timestamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
-    run_id = f"{config['runtime']['run_id_prefix']}-s{seed}-{timestamp}"
+    run_id = os.environ.get("A4_RUN_ID") or f"{config['runtime']['run_id_prefix']}-s{seed}-{timestamp}"
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", run_id):
+        raise ValueError("A4_RUN_ID must be a safe directory name")
     output_dir = Path(config["runtime"]["output_root"]).resolve() / run_id
     output_dir.mkdir(parents=True, exist_ok=False)
     manifest = _manifest(config, run_id, output_dir, "running")
@@ -394,6 +404,21 @@ def run(config: dict[str, Any]) -> Path:
                 f"configured budget {budget_bytes / 1024**3:.2f} GiB"
             )
         optimizer.cleanup()
+        checkpoint_policy = config["artifact"]["checkpoint_policy"]
+        full_run_steps = int(training["one_epoch_optimizer_steps"])
+        if checkpoint_policy == "save_final_main_only" and step_count == full_run_steps:
+            model.eval()
+            model.gradient_checkpointing_disable()
+            model.config.use_cache = True
+            manifest["artifacts"]["checkpoint"] = save_final_checkpoint(
+                model, tokenizer, output_dir
+            )
+        elif checkpoint_policy == "save_final_main_only":
+            manifest["artifacts"]["checkpoint"] = {
+                "status": "skipped_partial_run",
+                "optimizer_steps": step_count,
+                "full_run_steps": full_run_steps,
+            }
         manifest["status"] = "completed"
         manifest["completed_at"] = utc_now()
         manifest["training"]["optimizer_steps"] = step_count

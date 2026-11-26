@@ -98,6 +98,12 @@ bash scripts/a4_main.sh 2>&1 | tee /workspace/runs/logs/a4-main.log
 저장하고 optimizer step 직후 삭제한다. optimizer state는 완료·일반 오류 시 삭제되며
 강제 종료 시에는 해당 run ID의 잔여 디렉터리를 확인 후 정리한다. 이 파일들은 재시작
 checkpoint가 아니므로 실패한 run은 처음부터 다시 시작한다.
+설정의 `checkpoint_policy: save_final_main_only`는 117-step 본 실행이 끝나면
+`checkpoint/`에 모델 가중치(safetensors)와 tokenizer를 저장한다. 파일별 SHA-256을
+`checkpoint/checkpoint_manifest.json`에 기록하고, 저장이 완료된 뒤에만
+`run_manifest.json` 상태를 `completed`로 바꾼다. 5-step smoke와 20-step pilot은
+체크포인트를 저장하지 않는다. 최종 체크포인트는 추론·평가용이며 optimizer 상태가 없어
+학습 중간 재시작에는 사용할 수 없다.
 
 ## 5. 출력
 
@@ -106,6 +112,7 @@ checkpoint가 아니므로 실패한 run은 처음부터 다시 시작한다.
 - `run_manifest.json`: revision, config hash, 장비, 상태
 - `train.jsonl`: utility/safety loss, SPF 발동, 메모리, 시간
 - `a4.jsonl`: fresh/audit 방향별 단계 metric, 전이 event, Audit ΔCE
+- `checkpoint/`: 117-step 본 실행의 최종 모델·tokenizer·파일 해시 목록
 
 약 7.62B parameter 기준 optimizer state는 약 56.8 GiB, probe gradient 3벌은 최대 약
 42.6 GiB다. 모델 cache와 임시 파일 여유를 포함해 preflight에서 140 GiB의 남은 공간을

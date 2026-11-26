@@ -10,6 +10,8 @@ requires-python = ">=3.11"
 dependencies = [
   "PyYAML>=6.0.2",
   "numpy>=1.26.0",
+  "openai>=2.8.0,<3",
+  "pydantic>=2.10.0,<3",
   "datasets>=3.2.0",
   "safetensors>=0.5.0",
   "torch>=2.5.0",

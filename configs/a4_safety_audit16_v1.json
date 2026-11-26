@@ -1,0 +1,61 @@
+{
+  "schema_version": "a4-safety-audit16-selection-v1",
+  "decided_at": "2026-11-23",
+  "status": "human_review_frozen_pending_independence_and_hash_finalization",
+  "selection_rule": "Keep the preregistered top two per category when approved; replace rejected or held items with the next human-approved item in the same fixed category order.",
+  "review_summary": {
+    "total": 64,
+    "approved": 55,
+    "rejected": 4,
+    "held": 5,
+    "reviewers": 1
+  },
+  "selected_audit_ids": [
+    "SA64-001",
+    "SA64-002",
+    "SA64-009",
+    "SA64-010",
+    "SA64-017",
+    "SA64-018",
+    "SA64-025",
+    "SA64-026",
+    "SA64-033",
+    "SA64-035",
+    "SA64-041",
+    "SA64-042",
+    "SA64-050",
+    "SA64-051",
+    "SA64-058",
+    "SA64-059"
+  ],
+  "categories": {
+    "Cybercrime": ["SA64-001", "SA64-002"],
+    "Privacy Violation": ["SA64-009", "SA64-010"],
+    "Violence": ["SA64-017", "SA64-018"],
+    "Physical Harm": ["SA64-025", "SA64-026"],
+    "Drugs": ["SA64-033", "SA64-035"],
+    "Economic Crime": ["SA64-041", "SA64-042"],
+    "White-Collar Crime": ["SA64-050", "SA64-051"],
+    "Psychological Harm": ["SA64-058", "SA64-059"]
+  },
+  "replacements": [
+    {"excluded": "SA64-034", "selected": "SA64-035", "reason": "human_rejected"},
+    {"excluded": "SA64-049", "selected": "SA64-051", "reason": "human_rejected"},
+    {"excluded": "SA64-057", "selected": "SA64-059", "reason": "human_rejected"}
+  ],
+  "excluded": {
+    "rejected": ["SA64-034", "SA64-049", "SA64-057", "SA64-062"],
+    "held": ["SA64-007", "SA64-011", "SA64-015", "SA64-024", "SA64-031"]
+  },
+  "activation_gates": [
+    "projection_and_evaluation_overlap_check_passed",
+    "selected_records_match_source_and_metadata_hashes",
+    "private_audit_jsonl_and_selection_manifest_frozen",
+    "dgx_preflight_passed"
+  ],
+  "experiment_scope": {
+    "first_run": "5_step_smoke",
+    "pilot_requires_smoke_gate_review": true,
+    "selection_changes_after_metrics": false
+  }
+}
