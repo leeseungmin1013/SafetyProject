@@ -1,0 +1,34 @@
+{
+  "dataset": "PKU-Alignment/PKU-SafeRLHF",
+  "revision_to_verify": "9421ffafec3fa40a1f1a7d567b4d525079477ecb",
+  "config": "default",
+  "split": "train",
+  "row_index_source": "Dataset Viewer (zero-based)",
+  "revision_hash_match_verified": false,
+  "audit_panel_overlap_verified": false,
+  "single_reference": [
+    {"row_idx": 5687, "response_index": 0, "category": "Privacy Violation"},
+    {"row_idx": 1574, "response_index": 0, "category": "Mental Manipulation"},
+    {"row_idx": 62, "response_index": 0, "category": "Economic Crime"},
+    {"row_idx": 883, "response_index": 0, "category": "Drugs"},
+    {"row_idx": 206, "response_index": 0, "category": "Physical Harm"}
+  ],
+  "batch_reference": [
+    {"row_idx": 4092, "response_index": 1, "category": "Privacy Violation"},
+    {"row_idx": 658, "response_index": 1, "category": "Privacy Violation"},
+    {"row_idx": 3293, "response_index": 0, "category": "Privacy Violation"},
+    {"row_idx": 6291, "response_index": 1, "category": "Mental Manipulation"},
+    {"row_idx": 6892, "response_index": 0, "category": "Mental Manipulation"},
+    {"row_idx": 2365, "response_index": 0, "category": "Mental Manipulation"},
+    {"row_idx": 1450, "response_index": 1, "category": "Economic Crime"},
+    {"row_idx": 1580, "response_index": 1, "category": "Economic Crime"},
+    {"row_idx": 1631, "response_index": 1, "category": "Economic Crime"},
+    {"row_idx": 1644, "response_index": 1, "category": "Economic Crime"},
+    {"row_idx": 1970, "response_index": 0, "category": "Drugs"},
+    {"row_idx": 2156, "response_index": 1, "category": "Drugs"},
+    {"row_idx": 2381, "response_index": 0, "category": "Drugs"},
+    {"row_idx": 4253, "response_index": 1, "category": "Physical Harm"},
+    {"row_idx": 361, "response_index": 1, "category": "Physical Harm"},
+    {"row_idx": 3146, "response_index": 1, "category": "Physical Harm"}
+  ]
+}
